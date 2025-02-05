@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>tGt Presale</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.0.3/web3.min.js" integrity="sha384-OiORH3KONiKZkpIvN7WnGdFByF6y2x6DjWOMZl3P9cE20p1jljAg+2nLgIg10B3V" crossorigin="anonymous"></script>
+
 </head>
 <body>
     <h2>tGt Token Presale</h2>
