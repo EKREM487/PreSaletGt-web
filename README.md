@@ -1,132 +1,164 @@
-# PreSaletGt-web
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethereum Akıllı Sözleşme Entegrasyonu</title>
+    <title>tGt Token Pre-Sale</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        #accountInfo, #contractInfo { margin-top: 20px; display: none; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        .connect-btn {
+            background: #28a745;
+            color: white;
+        }
+        .buy-btn {
+            background: #007bff;
+            color: white;
+        }
+        .loading {
+            font-size: 14px;
+            color: #888;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Ethereum Akıllı Sözleşme Entegrasyonu</h1>
-    <button id="connectWallet">Cüzdanı Bağla</button>
-
-    <div id="accountInfo">
-        <h3>Bağlı Hesap:</h3>
-        <p><strong>Hesap:</strong> <span id="accountAddress">Bağlı değil</span></p>
-        <p><strong>ETH Bakiyesi:</strong> <span id="ethBalance">0</span> ETH</p>
+<div class="container">
+    <h1>tGt Token Pre-Sale</h1>
+    <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+    
+    <div id="accountInfo" style="display: none;">
+        <p><strong>Wallet:</strong> <span id="walletAddress"></span></p>
+        <p><strong>ETH Balance:</strong> <span id="ethBalance"></span> ETH</p>
     </div>
 
-    <div id="contractInfo">
-        <h3>Akıllı Sözleşme Bilgileri</h3>
-        <p><strong>Toplam ETH:</strong> <span id="totalETH">Yükleniyor...</span></p>
-        <button id="buyTokens">tGt Token Satın Al</button>
+    <div id="preSaleData" style="display: none;">
+        <h2>Pre-Sale Details</h2>
+        <p><strong>Start Time:</strong> <span id="startTime"></span></p>
+        <p><strong>Total ETH Raised:</strong> <span id="totalRaised"></span> ETH</p>
+        <p><strong>Remaining TGt Tokens:</strong> <span id="remainingTokens"></span></p>
+        <div class="loading" id="loadingMessage">Fetching data...</div>
+        
+        <h3>Buy TGt Tokens</h3>
+        <input type="number" id="amount" min="1" step="1" placeholder="Enter amount">
+        <button id="buyButton" class="buy-btn">Buy Tokens</button>
         <p id="statusMessage"></p>
     </div>
+</div>
 
-    <script>
-        let web3;
-        let contract;
-        let userAccount;
+<script>
+    // Smart Contract Information
+    const contractAddress = "0x3b6F824563Dcd221d4734D11Ec5c3D5848302Eaa";
+    const contractABI = [/* [{"inputs":[],"stateMutability":"ödenemez","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Onay","type":"event"},{"anonymous":false,"in puts":[{"indexed":true,"internalType":"adres","name":"from","type":"address"},{"indexed":true,"internalType":"adres","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"adres","name":"","type":"address"},{"internalType":"adres","name":"","type":"address"} ],"name":"izin","çıktılar":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"görünüm","type":"işlev"},{"inputs":[{"internalType":"adres","name":"harcama","type":"adres"},{"internalType":"uint256","name":"değer","type":"uint256"}],"name":"onayla","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":" işlev"},{"girişler":[{"internalType":"adres","ad":"sahip","tür":"adres"}],"ad":"bakiye","çıktılar":[{"internalType":"uint256","ad":"","tür":"uint256"}],"durumDeğişebilirliği":"görünüm","tür":"işlev"},{"girişler":[{"internalType":"adres","ad":"","tür":"adres"}],"ad":"bakiyeler","çıktılar":[{"internalType":"uint256","ad":"","tür":"uint256"}],"durumDeğişebilirliği":"görünüm","tür":"işlev"},{"girişler":[],"ad":"ondalıklar","çıktılar":[{"dahiliTür":"uint256","ad":"","tür":"uint256"}],"durumDeğişebilirliği":"görünüm","tür":"işlev"},{"girişler":[],"ad":"ad","çıktılar":[{"dahiliTür":"dize","ad":"","tür":"dize"}],"durumDeğişebilirliği":"görünüm","tür ":"işlev"},{"girişler":[],"ad":"sembol","çıktılar":[{"dahiliTür":"dize","ad":"","tür":"dize"}],"durumDeğişebilirliği":"görünüm","tür":"işlev"},{"girişler":[],"ad":"toplamTedarik","çıktılar":[{"dahiliTür":"uint256","ad":"","tür":"uint256"}],"durumDeğişebilirliği":"görünüm","tür":"işlev iyon"},{"girişler":[{"internalType":"adres","ad":"kime","tür":"adres"},{"internalType":"uint256","ad":"değer","tür":"uint256"}],"ad":"aktarma","çıktılar":[{"internalType":"bool","ad":"","tür":"bool"}],"durumDeğişebilirliği":"ödenemez","tür":"işlev"},{"girişler":[{"internalType":"adres","ad":"kime","tür":"adres"},{"internalType":"adres","ad":"kime","tür":"adres"},{"internalType":"uint256","ad":"değer","tür":"uint256"}],"ad":"aktarmaFrom","çıktılar":[{"internalType":"bool","ad":"","tür":"bool"}],"durumDeğişebilirliği":"ödenemez","tür":"işlev"}]"çıktılar":[{"internalType":"dize","adı":"","türü":"dize"}],"durumDeğişebilirliği":"görünüm","türü":"işlev"},{"girişler":[],"ad":"toplamTedarik","çıktılar":[{"internalType":"uint256","ad":"","türü":"uint256"}],"durumDeğişebilirliği":"görünüm","türü":"işlev"},{"girişler":[{"internalType":"adres","türü":"kime","türü":"adres"},{"internalType":"uint256","ad":"değer","türü":"uint256"}],"ad":"aktarım","çıktılar":[{"içinde ternalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"işlev"},{"girişler":[{"internalType":"adres","name":"kaynak","type":"adres"},{"internalType":"adres","name":"hedef","type":"adres"},{"internalType":"uint256","name":"değer","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"işlev"}]"çıktılar":[{"internalType":"dize","adı":"","türü":"dize"}],"durumDeğişebilirliği":"görünüm","türü":"işlev"},{"girişler":[],"ad":"toplamTedarik","çıktılar":[{"internalType":"uint256","ad":"","türü":"uint256"}],"durumDeğişebilirliği":"görünüm","türü":"işlev"},{"girişler":[{"internalType":"adres","türü":"kime","türü":"adres"},{"internalType":"uint256","ad":"değer","türü":"uint256"}],"ad":"aktarım","çıktılar":[{"içinde ternalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"işlev"},{"girişler":[{"internalType":"adres","name":"kaynak","type":"adres"},{"internalType":"adres","name":"hedef","type":"adres"},{"internalType":"uint256","name":"değer","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"işlev"}]"type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"function"}]"type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"ödenemez","type":"function"}] */];
 
-        // 📌 Kullanılacak Ethereum Akıllı Sözleşme Adresi
-        const contractAddress = "0x075db97493f572114db459c121299158cfb4bd39";
+    let web3;
+    let contract;
+
+    document.getElementById("connectWallet").addEventListener("click", async () => {
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            try {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                document.getElementById("walletAddress").textContent = accounts[0];
+                document.getElementById("accountInfo").style.display = "block";
+                document.getElementById("preSaleData").style.display = "block";
+
+                // Initialize Contract Instance
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+
+                // Fetch Pre-Sale Data
+                updatePreSaleData();
+                setInterval(updatePreSaleData, 10000); // Auto-refresh every 10 seconds
+            } catch (error) {
+                console.error("Wallet connection rejected", error);
+            }
+        } else {
+            alert("Please install MetaMask to connect.");
+        }
+    });
+
+    async function updatePreSaleData() {
+        if (!contract) return;
         
-        // 📌 Etherscan API ile ABI çekme
-        async function fetchABI() {
-            const url = `https://api.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}`;
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.status === "1") {
-                    return JSON.parse(data.result);
-                } else {
-                    console.error("Etherscan API hatası:", data.message);
-                }
-            } catch (error) {
-                console.error("ABI çekme hatası:", error);
-            }
+        document.getElementById("loadingMessage").style.display = "block";
+
+        try {
+            let startTime = await contract.methods.startTime().call();
+            let formattedStartTime = new Date(startTime * 1000).toLocaleString();
+            let totalRaisedWei = await contract.methods.totalRaised().call();
+            let totalRaisedEth = web3.utils.fromWei(totalRaisedWei, "ether");
+            let remainingTokens = await contract.methods.totalTokensForSale().call();
+
+            document.getElementById("startTime").textContent = formattedStartTime;
+            document.getElementById("totalRaised").textContent = totalRaisedEth;
+            document.getElementById("remainingTokens").textContent = remainingTokens;
+
+        } catch (error) {
+            console.error("Error fetching contract data", error);
         }
 
-        // 📌 Cüzdan Bağlama ve Akıllı Sözleşmeyi Web3.js ile Kullanma
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    web3 = new Web3(window.ethereum);
+        document.getElementById("loadingMessage").style.display = "none";
+    }
 
-                    const accounts = await web3.eth.getAccounts();
-                    userAccount = accounts[0];
-
-                    document.getElementById('accountAddress').textContent = userAccount;
-                    document.getElementById('accountInfo').style.display = 'block';
-                    document.getElementById('contractInfo').style.display = 'block';
-                    document.getElementById('connectWallet').style.display = 'none';
-
-                    const balance = await web3.eth.getBalance(userAccount);
-                    document.getElementById('ethBalance').textContent = web3.utils.fromWei(balance, 'ether');
-
-                    // 📌 Etherscan'den ABI çek ve Web3.js ile bağlan
-                    const abi = await fetchABI();
-                    contract = new web3.eth.Contract(abi, contractAddress);
-
-                    updateContractInfo();
-                } catch (error) {
-                    console.error("Cüzdan bağlantı hatası:", error);
-                    alert("Cüzdan bağlanamadı.");
-                }
-            } else {
-                alert("Lütfen MetaMask veya Web3 uyumlu bir cüzdan yükleyin.");
-            }
+    // Buy Tokens Function
+    document.getElementById("buyButton").addEventListener("click", async () => {
+        const amount = document.getElementById("amount").value;
+        if (amount <= 0) {
+            alert("Please enter a valid amount.");
+            return;
         }
 
-        // 📌 Akıllı Sözleşme Bilgilerini Güncelleme
-        async function updateContractInfo() {
-            try {
-                const totalRaised = await contract.methods.totalRaised().call();
-                document.getElementById('totalETH').textContent = web3.utils.fromWei(totalRaised, 'ether') + " ETH";
-            } catch (error) {
-                console.error("Akıllı sözleşme verileri alınamadı:", error);
-            }
+        if (!contract) {
+            alert("Smart contract not connected.");
+            return;
         }
 
-        // 📌 Token Satın Alma İşlemi
-        async function buyTokens() {
-            try {
-                const amount = prompt("Kaç tGt almak istiyorsunuz?");
-                if (amount <= 0) {
-                    alert("Lütfen geçerli bir miktar girin.");
-                    return;
-                }
+        try {
+            const accounts = await web3.eth.getAccounts();
+            const account = accounts[0];
 
-                const tokenPrice = web3.utils.toWei('0.01', 'ether'); // Örnek fiyat
-                const totalCost = web3.utils.toBN(tokenPrice).mul(web3.utils.toBN(amount));
+            // Fetch Token Price from Contract
+            const tokenPriceWei = await contract.methods.rate().call();
+            const totalCostWei = web3.utils.toBN(tokenPriceWei).mul(web3.utils.toBN(amount));
 
-                document.getElementById('statusMessage').textContent = "İşlem gerçekleştiriliyor...";
+            // Send Transaction
+            document.getElementById("statusMessage").textContent = "Processing transaction...";
+            await contract.methods.buyTokens(amount).send({
+                from: account,
+                value: totalCostWei
+            });
 
-                await contract.methods.buyTokens().send({
-                    from: userAccount,
-                    value: totalCost
-                });
-
-                document.getElementById('statusMessage').textContent = "Satın alma başarılı!";
-                updateContractInfo();
-            } catch (error) {
-                console.error("Satın alma hatası:", error);
-                document.getElementById('statusMessage').textContent = "İşlem başarısız.";
-            }
+            document.getElementById("statusMessage").textContent = "Purchase successful!";
+            updatePreSaleData(); // Refresh Data After Purchase
+        } catch (error) {
+            console.error("Transaction failed", error);
+            document.getElementById("statusMessage").textContent = "Transaction failed.";
         }
+    });
 
-        document.getElementById('connectWallet').addEventListener('click', connectWallet);
-        document.getElementById('buyTokens').addEventListener('click', buyTokens);
-    </script>
-
+</script>
 </body>
 </html>
