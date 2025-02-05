@@ -18,7 +18,7 @@
         let web3;
         let contract;
         const contractAddress = "0x951AfD9E496030Fb24a55c55C5a2f2f1520Bdfa5"; // ETH Ana Ağdaki Sözleşme Adresi
-        const contractABI = [ /* https://api.etherscan.io/api?module=contract&action=getabi&address=0x951afd9e496030fb24a55c55c5a2f2f1520bdfa5 */ ];
+        const contractABI = [  https://api.etherscan.io/api?module=contract&action=getabi&address=0x951afd9e496030fb24a55c55c5a2f2f1520bdfa5  ];
 
         async function connectWallet() {
             if (window.ethereum) {
