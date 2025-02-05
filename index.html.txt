@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tGt Token Presale</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .info {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Participate in tGt Token Presale</h1>
+    <div class="info">
+        <p><strong>Presale Start Date:</strong> <span id="startDate">Loading...</span></p>
+        <p><strong>Presale End Date:</strong> <span id="endDate">Loading...</span></p>
+        <p><strong>Remaining tGt Tokens:</strong> <span id="remainingTokens">Loading...</span></p>
+        <p><strong>Total ETH Collected:</strong> <span id="ethCollected">Loading...</span></p>
+    </div>
+    <input type="number" id="ethAmount" placeholder="ETH amount" step="0.01" min="0">
+    <br>
+    <button id="buyTokens">Buy Tokens</button>
+    <p id="status"></p>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+
+                const contractAddress = "0x3b6F824563Dcd221d4734D11Ec5c3D5848302Eaa";
+                const contractABI = [ /* https://api.etherscan.io/api?module=contract&action=getabi&address=0x3b6F824563Dcd221d4734D11Ec5c3D5848302Eaa */ ];
+
+                const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+                // Function to fetch and display presale information
+                async function fetchPresaleInfo() {
+                    try {
+                        // Fetch presale start and end dates
+                        const startTimestamp = await contract.methods.presaleStart().call();
+                        const endTimestamp = await contract.methods.presaleEnd().call();
+
+                        // Convert timestamps to readable dates
+                        const startDate = new Date(startTimestamp * 1000).toLocaleString();
+                        const endDate = new Date(endTimestamp * 1000).toLocaleString();
+
+                        // Display dates
+                        document.getElementById("startDate").innerText = startDate;
+                        document.getElementById("endDate").innerText = endDate;
+
+                        // Fetch remaining tokens
+                        const remainingTokens = await contract.methods.remainingTokens().call();
+                        document.getElementById("remainingTokens").innerText = remainingTokens;
+
+                        // Fetch total ETH collected
+                        const ethCollected = await contract.methods.totalETHCollected().call();
+                        const ethCollectedInEther = web3.utils.fromWei(ethCollected, 'ether');
+                        document.getElementById("ethCollected").innerText = ethCollectedInEther + " ETH";
+                    } catch (error) {
+                        console.error("Error fetching presale information:", error);
+                    }
+                }
+
+                // Fetch presale information on page load
+                fetchPresaleInfo();
+
+                document.getElementById("buyTokens").addEventListener("click", async function () {
+                    const ethAmount = document.getElementById("ethAmount").value;
+                    if (!ethAmount || ethAmount <= 0) {
+                        document.getElementById("status").innerText = "Please enter a valid ETH amount.";
+                        return;
+                    }
+
+                    try {
+                        await window.ethereum.request({ method: "eth_requestAccounts" });
+                        const accounts = await web3.eth.getAccounts();
+                        const amountInWei = web3.utils.toWei(ethAmount, "ether");
+
+                        contract.methods.buyTokens().send({ from: accounts[0], value: amountInWei })
+                            .on("transactionHash", function (hash) {
+                                document.getElementById("status").innerText = "Transaction sent: " + hash;
+                            })
+                            .on("receipt", function (receipt) {
+                                document.getElementById("status").innerText = "Transaction successful!";
+                                // Update presale information after purchase
+                                fetchPresaleInfo();
+                            })
+                            .on("error", function (error) {
+                                document.getElementById("status").innerText = "Transaction error: " + error.message;
+                            });
+                    } catch (error) {
+                        document.getElementById("status").innerText = "MetaMask connection rejected.";
+                    }
+                });
+            } else {
+                document.getElementById("status").innerText = "MetaMask is not installed. Please install MetaMask.";
+            }
+        });
+    </script>
+</body>
+</html>
