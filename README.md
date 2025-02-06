@@ -1,1 +1,154 @@
-<p><br><br><br>  <meta charset="UTF-8"><br>  <meta name="viewport" content="width=device-width, initial-scale=1.0"><br>  <title>Token Presale</title></p><style>    body {<br>      font-family: Arial, sans-serif;<br>      margin: 0;<br>      padding: 20px;<br>      background-color: #f4f4f9;<br>      color: #333;<br>    }<br>    h1 {<br>      color: #4CAF50;<br>    }<br>    form {<br>      background: #fff;<br>      padding: 20px;<br>      border-radius: 8px;<br>      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);<br>      max-width: 400px;<br>      margin: 20px auto;<br>    }<br>    label {<br>      display: block;<br>      margin-bottom: 8px;<br>      font-weight: bold;<br>    }<br>    input[type="number"] {<br>      width: 100%;<br>      padding: 10px;<br>      margin-bottom: 20px;<br>      border: 1px solid #ccc;<br>      border-radius: 4px;<br>      font-size: 16px;<br>    }<br>    button {<br>      background-color: #4CAF50;<br>      color: white;<br>      padding: 10px 20px;<br>      border: none;<br>      border-radius: 4px;<br>      cursor: pointer;<br>      font-size: 16px;<br>    }<br>    button:hover {<br>      background-color: #45a049;<br>    }<br>    #connectButton {<br>      margin-bottom: 20px;<br>    }<br>    .message {<br>      margin-top: 20px;<br>      padding: 10px;<br>      border-radius: 4px;<br>      text-align: center;<br>    }<br>    .success {<br>      background-color: #d4edda;<br>      color: #155724;<br>    }<br>    .error {<br>      background-color: #f8d7da;<br>      color: #721c24;<br>    }<br>  </style><p><br></p><h1>Token Presale</h1><p>Welcome to our token presale! Connect your MetaMask wallet and participate.</p><p><!-- MetaMask Bağlantı Butonu --></p><p>  <button id="connectButton">Connect MetaMask</button></p><p><!-- Token Satın Alma Formu --></p><form id="buyTokensForm">    <label for="ethAmount">ETH Amount (Min: 0.003 ETH, Max: 0.15 ETH):</label><br>    <input type="number" id="ethAmount" step="0.001" min="0.003" max="0.15" required><br>    <button type="submit">Buy Tokens</button><br>  </form><p><!-- Mesaj Gösterme Alanı --></p><div id="message" class="message"></div><p><!-- Ethers.js Kütüphanesi --></p><p>  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script><br><br>  <script><br>    // Sözleşme ABI'si<br>    const presaleContractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]<br>    ];<br><br>    // Sözleşme Adresi<br>    const presaleContractAddress = "0xYourPresaleContractAddress"; // 0x951AfD9E496030Fb24a55c55C5a2f2f1520Bdfa5<br><br>    // MetaMask Bağlantısı<br>    const connectButton = document.getElementById('connectButton');<br>    const buyTokensForm = document.getElementById('buyTokensForm');<br>    const messageDiv = document.getElementById('message');<br><br>    let userAddress = null;<br><br>    // MetaMask Bağlantısını Yönet<br>    connectButton.addEventListener('click', async () => {<br>      if (typeof window.ethereum !== 'undefined') {<br>        try {<br>          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });<br>          userAddress = accounts[0];<br>          showMessage(`Connected: ${userAddress}`, 'success');<br>        } catch (error) {<br>          showMessage(`Error connecting to MetaMask: ${error.message}`, 'error');<br>        }<br>      } else {<br>        showMessage('MetaMask is not installed!', 'error');<br>      }<br>    });<br><br>    // Token Satın Alma İşlemi<br>    buyTokensForm.addEventListener('submit', async (e) => {<br>      e.preventDefault();<br>      if (!userAddress) {<br>        showMessage('Please connect your MetaMask wallet first.', 'error');<br>        return;<br>      }<br><br>      const ethAmount = document.getElementById('ethAmount').value;<br>      const weiAmount = ethers.utils.parseEther(ethAmount);<br><br>      if (typeof window.ethereum !== 'undefined') {<br>        const provider = new ethers.providers.Web3Provider(window.ethereum);<br>        const signer = provider.getSigner();<br>        const presaleContract = new ethers.Contract(presaleContractAddress, presaleContractABI, signer);<br><br>        try {<br>          const tx = await presaleContract.buyTokens({ value: weiAmount });<br>          await tx.wait();<br>          showMessage('Tokens purchased successfully!', 'success');<br>        } catch (error) {<br>          showMessage(`Error purchasing tokens: ${error.message}`, 'error');<br>        }<br>      } else {<br>        showMessage('MetaMask is not installed!', 'error');<br>      }<br>    });<br><br>    // Mesaj Gösterme Fonksiyonu<br>    function showMessage(message, type) {<br>      messageDiv.textContent = message;<br>      messageDiv.className = `message ${type}`;<br>    }<br>  </script><br><br></p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Presale</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #connectButton {
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Token Presale</h1>
+    <p>Welcome to our token presale! Connect your MetaMask wallet and participate.</p>
+    <button id="connectButton">Connect MetaMask</button>
+    <form id="buyTokensForm">
+        <label for="ethAmount">ETH Amount (Min: 0.003 ETH, Max: 0.15 ETH):</label>
+        <input type="number" id="ethAmount" step="0.001" min="0.003" max="0.15" required>
+        <button type="submit">Buy Tokens</button>
+    </form>
+    <div id="message" class="message"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        
+        const presaleContractABI =[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balances","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]  ;
+
+        // Sözleşme Adresi
+        const presaleContractAddress = "0x951AfD9E496030Fb24a55c55C5a2f2f1520Bdfa5";
+
+        // MetaMask Bağlantısı
+        const connectButton = document.getElementById('connectButton');
+        const buyTokensForm = document.getElementById('buyTokensForm');
+        const messageDiv = document.getElementById('message');
+
+        let userAddress = null;
+
+        // MetaMask Bağlantısını Yönet
+        connectButton.addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    userAddress = accounts[0];
+                    showMessage(`Connected: ${userAddress}`, 'success');
+                } catch (error) {
+                    showMessage(`Error connecting to MetaMask: ${error.message}`, 'error');
+                }
+            } else {
+                showMessage('MetaMask is not installed!', 'error');
+            }
+        });
+
+        // Token Satın Alma İşlemi
+        buyTokensForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userAddress) {
+                showMessage('Please connect your MetaMask wallet first.', 'error');
+                return;
+            }
+
+            const ethAmount = document.getElementById('ethAmount').value;
+            const minETH = 0.003;
+            const maxETH = 0.15;
+
+            if (ethAmount < minETH || ethAmount > maxETH) {
+                showMessage(`ETH amount must be between ${minETH} and ${maxETH}`, 'error');
+                return;
+            }
+
+            const weiAmount = ethers.utils.parseEther(ethAmount);
+
+            if (typeof window.ethereum !== 'undefined') {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const presaleContract = new ethers.Contract(presaleContractAddress, presaleContractABI, signer);
+
+                try {
+                    const tx = await presaleContract.buyTokens({ value: weiAmount });
+                    await tx.wait();
+                    showMessage('Tokens purchased successfully!', 'success');
+                } catch (error) {
+                    showMessage(`Error purchasing tokens: ${error.message}`, 'error');
+                }
+            } else {
+                showMessage('MetaMask is not installed!', 'error');
+            }
+        });
+
+        // Mesaj Gösterme Fonksiyonu
+        function showMessage(message, type) {
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+        }
+    </script>
+</body>
+</html>
